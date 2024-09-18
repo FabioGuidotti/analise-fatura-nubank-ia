@@ -14,21 +14,77 @@ st.set_page_config(layout="wide")
 
 def main():
     run_migrations()
-    st.title("Gestão Financeira Pessoal - Fatura do Cartão Nubank")
 
-    menu = ["Importar Fatura", "Visualizar e Gerenciar Dados", "Análises", "Gerenciar Categorias", "Conversar com IA"]
-    escolha = st.sidebar.selectbox("Menu", menu)
+    # Estilo personalizado para a barra lateral
+    st.markdown(
+        """
+        <style>
+        .sidebar .sidebar-content {
+            background-color: #f0f2f6;
+        }
+        .sidebar .sidebar-content .block-container {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .stButton>button {
+            width: 100%;
+            border: none;
+            border-radius: 0;
+            padding: 15px 10px;
+            text-align: left;
+            background-color: transparent;
+            color: #262730;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .stButton>button:hover {
+            background-color: #e0e2e6;
+        }
+        .stButton>button:focus {
+            background-color: #d0d2d6;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    if escolha == "Importar Fatura":
-        importar_fatura()
-    elif escolha == "Visualizar e Gerenciar Dados":
-        visualizar_e_gerenciar_dados()
-    elif escolha == "Análises":
+    # Inicializar a variável de seleção com "Análises"
+    if 'selected' not in st.session_state:
+        st.session_state.selected = "Análises"
+
+    # Barra lateral
+    with st.sidebar:
+        # Tente carregar o logo centralizado
+        try:
+            col1, col2, col3 = st.columns([1,2,1])
+            with col2:
+                st.image("logo.png", width=100, use_column_width=True)
+        except:
+            st.title("Gestão Financeira")
+        
+        # Menu reordenado
+        if st.button("📈 Análises"):
+            st.session_state.selected = "Análises"
+        if st.button("🤖 Conversar com IA"):
+            st.session_state.selected = "Conversar com IA"
+        if st.button("📁 Importar Fatura"):
+            st.session_state.selected = "Importar Fatura"
+        if st.button("📊 Visualizar e Gerenciar Dados"):
+            st.session_state.selected = "Visualizar e Gerenciar Dados"
+        if st.button("🏷️ Gerenciar Categorias"):
+            st.session_state.selected = "Gerenciar Categorias"
+
+    # Conteúdo principal
+    if st.session_state.selected == "Análises":
         analises()
-    elif escolha == "Gerenciar Categorias":
-        gerenciar_categorias()
-    elif escolha == "Conversar com IA":
+    elif st.session_state.selected == "Conversar com IA":
         conversar_com_ia()
+    elif st.session_state.selected == "Importar Fatura":
+        importar_fatura()
+    elif st.session_state.selected == "Visualizar e Gerenciar Dados":
+        visualizar_e_gerenciar_dados()
+    elif st.session_state.selected == "Gerenciar Categorias":
+        gerenciar_categorias()
 
 def importar_fatura():
     st.subheader("Importação da Fatura")
