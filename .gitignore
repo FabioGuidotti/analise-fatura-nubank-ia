@@ -1,0 +1,58 @@
+# Arquivos e diretórios específicos do Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ambiente virtual
+venv/
+env/
+.env
+
+# Arquivos do Streamlit
+.streamlit/secrets.toml
+
+# Banco de dados SQLite
+*.db
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Diretórios de IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos de configuração pessoal
+*.ini
+
+# Arquivos de saída
+*.pdf
+*.csv
+*.xlsx
+
+# Diretório de build
+build/
+dist/
+*.egg-info/
+
+# Arquivos de cache do Jupyter Notebook
+.ipynb_checkpoints
+
+# Arquivos de ambiente local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos de dependências
+pip-log.txt
+pip-delete-this-directory.txt
