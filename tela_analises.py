@@ -1,5 +1,8 @@
-import plotly.express as px
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from database import carregar_dados, obter_datas_faturas, obter_arquivos_origem
 
 def criar_graficos_analise(dados_fatura):
     # Verificar e ajustar os nomes das colunas
@@ -9,18 +12,16 @@ def criar_graficos_analise(dados_fatura):
     coluna_descricao = 'Descrição' if 'Descrição' in colunas else 'descricao'
     coluna_categoria = 'Categoria' if 'Categoria' in colunas else 'categoria'
 
-    # Estatísticas básicas
-    st.subheader("Resumo Financeiro")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Total gasto", f"R$ {dados_fatura[coluna_valor].sum():.2f}")
-    with col2:
-        st.metric("Média de gastos", f"R$ {dados_fatura[coluna_valor].mean():.2f}")
-    with col3:
-        st.metric("Maior gasto", f"R$ {dados_fatura[coluna_valor].max():.2f}")
-    with col4:
-        st.metric("Menor gasto", f"R$ {dados_fatura[coluna_valor].min():.2f}")
+    # Verificar se a coluna de data existe
+    if coluna_data not in dados_fatura.columns:
+        st.error(f"Coluna de data '{coluna_data}' não encontrada no DataFrame.")
+        st.write("Colunas disponíveis:", dados_fatura.columns.tolist())
+        return
 
+    # Assegure-se de que a coluna de data está no formato correto
+    if not pd.api.types.is_datetime64_any_dtype(dados_fatura[coluna_data]):
+        dados_fatura[coluna_data] = pd.to_datetime(dados_fatura[coluna_data], errors='coerce')
+    
     # Gráficos de linha e barra lado a lado
     st.subheader("Evolução dos Gastos")
     col1, col2 = st.columns(2)
@@ -94,3 +95,31 @@ def criar_graficos_analise(dados_fatura):
         fig_dia_semana.update_xaxes(title='Dia da Semana')
         fig_dia_semana.update_yaxes(title='Valor Total')
         st.plotly_chart(fig_dia_semana, use_container_width=True)
+
+def tela_analises():
+    if 'user' not in st.session_state or not st.session_state.user:
+        st.error("Por favor, faça login para acessar esta página.")
+        return
+
+    usuario_id = st.session_state.user.id
+
+    st.subheader("Análises da Fatura")
+    dados_fatura = carregar_dados(usuario_id)
+    if not dados_fatura.empty:
+        criar_graficos_analise(dados_fatura)
+        
+        st.subheader("Resumo Estatístico")
+        st.write(dados_fatura['Valor'].describe())
+        
+        st.subheader("Maiores Gastos")
+        maiores_gastos = dados_fatura.nlargest(5, 'Valor')
+        st.table(maiores_gastos[['Data', 'Descrição', 'Valor', 'Categoria']])
+        
+        st.subheader("Gastos por Categoria")
+        gastos_por_categoria = dados_fatura.groupby('Categoria')['Valor'].sum().sort_values(ascending=False)
+        st.bar_chart(gastos_por_categoria)
+    else:
+        st.warning("Nenhuma fatura importada ainda. Por favor, importe uma fatura primeiro.")
+
+    datas_faturas = obter_datas_faturas(usuario_id)
+    arquivos_origem = obter_arquivos_origem(usuario_id)
