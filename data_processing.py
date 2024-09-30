@@ -3,7 +3,7 @@ import pdfplumber
 from ai_utils import extrair_transacoes_com_ai
 from database import obter_categorias
 
-def importar_fatura_nubank_pdf(arquivo):
+def importar_fatura_nubank_pdf(arquivo, usuario_id):
     # Extrair texto do PDF
     with pdfplumber.open(arquivo) as pdf:
         texto_completo = ""
@@ -11,7 +11,7 @@ def importar_fatura_nubank_pdf(arquivo):
             texto_completo += pagina.extract_text()
 
     # Obter categorias do banco de dados
-    categorias = obter_categorias()
+    categorias = obter_categorias(usuario_id)
 
     # Usar IA para extrair as transações
     transacoes = extrair_transacoes_com_ai(texto_completo, categorias)

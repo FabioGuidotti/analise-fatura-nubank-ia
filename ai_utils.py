@@ -1,7 +1,13 @@
+import os
 from openai import OpenAI
+from dotenv import load_dotenv
 import streamlit as st
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Inicializa o cliente OpenAI com a chave API do arquivo .env
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extrair_transacoes_com_ai(texto, categorias):
     categorias_str = ", ".join(categorias)

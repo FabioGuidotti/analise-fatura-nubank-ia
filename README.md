@@ -15,25 +15,44 @@ Este projeto é uma aplicação Streamlit para gerenciar e analisar faturas do c
 
 - Python 3.7+
 - Bibliotecas Python (veja `requirements.txt`)
+- PostgreSQL
 
 ## Instalação
 
-1. Instale as dependências:
+1. Clone o repositório:
+   ```
+   git clone https://github.com/seu-usuario/seu-repositorio.git
+   cd seu-repositorio
+   ```
+
+2. Instale as dependências:
    ```
    pip install -r requirements.txt
    ```
 
-2. Configure as variáveis de ambiente:
-   Crie um arquivo `secrets.toml` na pasta `.streamlit` do projeto e adicione sua chave da API OpenAI:
-   ```toml
-   OPENAI_API_KEY = "sua_chave_api_aqui"
+3. Configure as variáveis de ambiente:
+   Crie um arquivo `.env` na raiz do projeto e adicione suas configurações:
+   ```
+   OPENAI_API_KEY=chave da api openai
+   DB_HOST=host do seu banco de dados
+   DB_PORT=porta do seu banco de dados
+   DB_NAME=nome do seu banco de dados
+   DB_USER=usuario do seu banco de dados
+   DB_PASSWORD=senha do seu banco de dados
    ```
 
 ## Configuração do Banco de Dados
 
-O projeto usa SQLite como banco de dados e Alembic para gerenciamento de migrações.
+O projeto usa PostgreSQL como banco de dados e Alembic para gerenciamento de migrações.
 
-Verifique a configuração do banco de dados em `alembic.ini`:
+1. Crie um banco de dados PostgreSQL para o projeto.
+
+2. Verifique a configuração do banco de dados em `alembic.ini`.
+
+3. Execute as migrações:
+   ```
+   alembic upgrade head
+   ```
 
 ## Uso
 
@@ -47,15 +66,14 @@ Verifique a configuração do banco de dados em `alembic.ini`:
 ## Estrutura do Projeto
 
 - `app.py`: Arquivo principal da aplicação Streamlit
-- `database.py`: Funções para interação com o banco de dados SQLite
-- `ai_utils.py`: Funções relacionadas à IA e processamento de linguagem natural usando OpenAI
-- `data_processing.py`: Funções para processamento de dados e importação de faturas PDF
-- `visualizations.py`: Funções para criar visualizações e gráficos interativos com Plotly
+- `database.py`: Funções para interação com o banco de dados PostgreSQL
+- `models.py`: Modelos de dados do banco de dados
+- `ai_utils.py`: Funções relacionadas à IA e processamento de linguagem natural
+- `data_processing.py`: Funções para processamento de dados e importação de faturas
+- `auth.py`: Funções para autenticação de usuários
 - `alembic/`: Diretório contendo as migrações do banco de dados
-  - `env.py`: Configuração do ambiente Alembic
-  - `versions/`: Scripts de migração do banco de dados
-- `.streamlit/`: Diretório contendo configurações do Streamlit
-  - `secrets.toml`: Arquivo para armazenar segredos e chaves de API
+- `tela_*.py`: Arquivos contendo as diferentes telas da aplicação
+- `requirements.txt`: Arquivo contendo as dependências do projeto
 
 ## Funcionalidades Detalhadas
 
