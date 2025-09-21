@@ -4,8 +4,19 @@ services:
   # Aplicação principal - Análise de Fatura Nubank
   analise-fatura-app:
     build: .
+    # Para desenvolvimento local (ignorado no Docker Swarm)
     container_name: analise-fatura-nubank
     restart: always
+    # Para produção no Docker Swarm (ignorado no docker-compose)
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DB_HOST=${DB_HOST}
@@ -16,6 +27,7 @@ services:
       - GENERIC_TIMEZONE=America/Sao_Paulo
     volumes:
       - analise_fatura_data:/app/data
+      # Volume para desenvolvimento local (ignorado no Docker Swarm)
       - ./uploads:/app/uploads
     networks:
       - traefik-central_traefik-public
