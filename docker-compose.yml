@@ -3,7 +3,9 @@ version: '3.8'
 services:
   # Aplicação principal - Análise de Fatura Nubank
   analise-fatura-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     # Para desenvolvimento local (ignorado no Docker Swarm)
     container_name: analise-fatura-nubank
     restart: always
