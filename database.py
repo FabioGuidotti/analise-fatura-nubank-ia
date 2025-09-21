@@ -42,11 +42,20 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-# String de conexão do PostgreSQL
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-# Cria o engine do SQLAlchemy
-engine = create_engine(DATABASE_URL)
+# String de conexão do banco de dados
+# Tenta PostgreSQL primeiro, se falhar usa SQLite
+try:
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    engine = create_engine(DATABASE_URL)
+    # Testa a conexão
+    test_engine = create_engine(DATABASE_URL)
+    with test_engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    print("Usando PostgreSQL")
+except Exception as e:
+    print(f"PostgreSQL não disponível ({e}), usando SQLite")
+    DATABASE_URL = "sqlite:///analise_fatura.db"
+    engine = create_engine(DATABASE_URL)
 
 # Cria uma sessão
 Session = sessionmaker(bind=engine)
