@@ -20,6 +20,7 @@ class Categoria(Base):
     __tablename__ = 'categorias'
     id = Column(Integer, primary_key=True)
     nome = Column(String, nullable=False)
+    exemplos = Column(String, nullable=True)  # JSON string com exemplos de gastos
     usuario_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
 
 class Transacao(Base):
@@ -68,9 +69,17 @@ Session = sessionmaker(bind=engine)
 def salvar_dados(dados, arquivo_origem, usuario_id):
     session = Session()
     try:
-        print("Iniciando importação dos dados")
+        print(f"Iniciando importação dos dados: {len(dados)} registros")
+        print(f"Arquivo origem: {arquivo_origem}")
+        print(f"Usuário ID: {usuario_id}")
+        
+        transacoes_salvas = 0
+        erros = 0
+        
         for index, row in dados.iterrows():
             try:
+                print(f"Processando linha {index + 1}/{len(dados)}: {row.get('descricao', 'N/A')}")
+                
                 if isinstance(row['data'], pd.Timestamp):
                     data = row['data'].date()
                 else:
@@ -85,17 +94,26 @@ def salvar_dados(dados, arquivo_origem, usuario_id):
                     usuario_id=usuario_id
                 )
                 session.add(transacao)
+                transacoes_salvas += 1
 
             except Exception as row_error:
-                print(f"Erro ao processar linha {index}: {str(row_error)}")
+                erros += 1
+                print(f"❌ Erro ao processar linha {index + 1}: {str(row_error)}")
                 print(f"Conteúdo da linha: {row.to_dict()}")
+                continue
 
         session.commit()
-        print(f"Importação concluída. {len(dados)} transações salvas.")
+        print(f"✅ Importação concluída: {transacoes_salvas} transações salvas, {erros} erros")
+        
+        if erros > 0:
+            print(f"⚠️ {erros} transações não foram salvas devido a erros")
+            
     except Exception as e:
         session.rollback()
-        print(f"Erro ao salvar dados: {str(e)}")
+        print(f"❌ Erro ao salvar dados: {str(e)}")
         print("Detalhes do erro:", e)
+        import traceback
+        traceback.print_exc()
         raise
     finally:
         session.close()
@@ -271,5 +289,72 @@ def autenticar_usuario(nome, senha):
     try:
         usuario = session.query(Usuario).filter_by(name=nome).first()
         return usuario.id if usuario and usuario.senha == senha else None
+    finally:
+        session.close()
+
+def obter_categoria_com_exemplos(usuario_id):
+    """Retorna todas as categorias com seus exemplos"""
+    session = Session()
+    try:
+        categorias = session.query(Categoria).filter_by(usuario_id=usuario_id).all()
+        return [
+            {
+                'id': cat.id,
+                'nome': cat.nome,
+                'exemplos': cat.exemplos
+            } for cat in categorias
+        ]
+    finally:
+        session.close()
+
+def atualizar_exemplos_categoria(nome_categoria, exemplos, usuario_id):
+    """Atualiza os exemplos de uma categoria específica"""
+    session = Session()
+    try:
+        categoria = session.query(Categoria).filter_by(nome=nome_categoria, usuario_id=usuario_id).first()
+        if categoria:
+            categoria.exemplos = exemplos
+            session.commit()
+            return True
+        return False
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao atualizar exemplos da categoria: {str(e)}")
+        return False
+    finally:
+        session.close()
+
+def obter_categorias_com_exemplos_para_ia(usuario_id):
+    """Retorna categorias formatadas para uso no prompt da IA"""
+    session = Session()
+    try:
+        categorias = session.query(Categoria).filter_by(usuario_id=usuario_id).all()
+        resultado = []
+        for cat in categorias:
+            categoria_info = f"- {cat.nome}"
+            if cat.exemplos:
+                categoria_info += f" (exemplos: {cat.exemplos})"
+            resultado.append(categoria_info)
+        return resultado
+    finally:
+        session.close()
+
+def atualizar_transacao(transacao_id, data, descricao, valor, categoria, usuario_id):
+    """Atualiza uma transação específica"""
+    session = Session()
+    try:
+        transacao = session.query(Transacao).filter_by(id=transacao_id, usuario_id=usuario_id).first()
+        if transacao:
+            transacao.data = data
+            transacao.descricao = descricao
+            transacao.valor = valor
+            transacao.categoria = categoria
+            session.commit()
+            return True
+        return False
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao atualizar transação: {str(e)}")
+        return False
     finally:
         session.close()

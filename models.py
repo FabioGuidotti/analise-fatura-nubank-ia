@@ -13,6 +13,7 @@ class Categoria(Base):
 
     id = Column(Integer, primary_key=True)
     nome = Column(String, unique=True, nullable=False)
+    exemplos = Column(String, nullable=True)  # JSON string com exemplos de gastos
 
 class Transacao(Base):
     __tablename__ = 'transacoes'
