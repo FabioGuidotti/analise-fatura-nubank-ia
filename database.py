@@ -45,6 +45,10 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 # String de conexão do banco de dados
 # Tenta PostgreSQL primeiro, se falhar usa SQLite
 try:
+    # Verifica se todas as variáveis de ambiente estão definidas
+    if not all([DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD]):
+        raise ValueError("Variáveis de ambiente do banco de dados não estão definidas")
+    
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     engine = create_engine(DATABASE_URL)
     # Testa a conexão

@@ -27,6 +27,8 @@ def extrair_transacoes_com_ai(texto, categorias):
         {{"data": "YYYY-MM-DD", "descricao": "Descrição da transação", "valor": "XXX,XX", "categoria": "Categoria"}},
         ...
     ]
+    
+    IMPORTANTE: O valor deve ser retornado apenas como número no formato "XXX,XX" (sem símbolo R$ ou $).
     """
 
     response = client.chat.completions.create(
