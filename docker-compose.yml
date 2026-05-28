@@ -1,47 +1,38 @@
-version: '3.8'
-
 services:
-  # Aplicação principal - Análise de Fatura Nubank
-  analise-fatura-app:
-    image: fabioguidotti/analise-fatura-nubank:latest
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-      placement:
-        constraints:
-          - node.role == manager
+  db:
+    image: postgres:16-alpine
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - GENERIC_TIMEZONE=America/Sao_Paulo
+      POSTGRES_DB: ${POSTGRES_DB:-financa_facil}
+      POSTGRES_USER: ${POSTGRES_USER:-financa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-financa}
     volumes:
-      - analise_fatura_data:/app/data
-    networks:
-      - traefik-central_traefik-public
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik-central_traefik-public"
-      - "traefik.http.routers.analise-fatura.rule=Host(`analise-fatura.ia.dashx.com.br`)"
-      - "traefik.http.routers.analise-fatura.entrypoints=websecure"
-      - "traefik.http.routers.analise-fatura.tls=true"
-      - "traefik.http.routers.analise-fatura.tls.certresolver=myresolver"
-      - "traefik.http.services.analise-fatura.loadbalancer.server.port=8501"
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-financa}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-financa}:${POSTGRES_PASSWORD:-financa}@db:5432/${POSTGRES_DB:-financa_facil}
+      SECRET_KEY: ${SECRET_KEY:?Defina SECRET_KEY no .env}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
-# Redes
-networks:
-  traefik-central_traefik-public:
-    external: true  # Usa a rede existente do Traefik
-
-# Volumes
 volumes:
-  analise_fatura_data:
-    name: analise_fatura_data
+  pgdata:
