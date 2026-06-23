@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-financa_facil}
       POSTGRES_USER: ${POSTGRES_USER:-financa}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-financa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,7 +16,7 @@ services:
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-financa}:${POSTGRES_PASSWORD:-financa}@db:5432/${POSTGRES_DB:-financa_facil}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-financa}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-financa_facil}
       SECRET_KEY: ${SECRET_KEY:?Defina SECRET_KEY no .env}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
